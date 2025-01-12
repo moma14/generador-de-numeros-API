@@ -1,3 +1,4 @@
+import jwt from 'jsonwebtoken';
 import { usuarioService } from '../services/Usuarios.js';
 
 export const usuarioController = {
@@ -54,5 +55,61 @@ export const usuarioController = {
     } catch (error) {
       res.status(400).json({ error: error.message });
     }
-  }
+  },
+
+  // Iniciar sesión
+  async login(req, res) {
+    try {
+      const { usuario, contrasenia } = req.body;
+
+      // Validar credenciales
+      const usuarioData = await usuarioService.obtenerUsuarioPorNombreUsuario(usuario);
+
+      if (!usuarioData || usuarioData.contrasenia !== contrasenia) {
+        return res.status(401).json({ error: 'Credenciales inválidas' });
+      }
+
+      // Generar token JWT
+      const token = jwt.sign(
+        { id: usuarioData.id_usuario, usuario: usuarioData.usuario },
+        process.env.JWT_SECRET || 'mi_secreto_jwt',
+        { expiresIn: '1h' }
+      );
+
+      // Crear sesión
+      req.session.userId = usuarioData.id_usuario;
+
+      res.status(200).json({
+        message: 'Inicio de sesión exitoso',
+        token,
+        usuario: {
+          id: usuarioData.id_usuario,
+          nombres: usuarioData.nombres,
+          usuario: usuarioData.usuario,
+        },
+      });
+    } catch (error) {
+      res.status(500).json({ error: 'Error al iniciar sesión' });
+    }
+  },
+
+  // Obtener sesión activa
+  async getSession(req, res) {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: 'No estás autenticado' });
+    }
+
+    res.status(200).json({ userId: req.session.userId });
+  },
+
+  // Cerrar sesión
+  async logout(req, res) {
+    req.session.destroy((err) => {
+      if (err) {
+        return res.status(500).json({ error: 'Error al cerrar sesión' });
+      }
+
+      res.status(200).json({ message: 'Sesión cerrada exitosamente' });
+    });
+  },
 };
