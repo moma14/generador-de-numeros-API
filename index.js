@@ -4,6 +4,7 @@ import bodyParser from 'body-parser';
 import multer from 'multer';
 import sharp from 'sharp';
 import usuarioRoutes from './routes/Usuarios.js';
+import generacionRoutes from './routes/Generador.js';
 import { verificarConexion } from './base de datos/Database.js'; // Importar la función verificarConexion
 
 // Configuración del servidor
@@ -43,6 +44,9 @@ app.post('/upload', upload.single('grafico'), async (req, res) => {
 
 // Rutas principales
 app.use('/usuarios', usuarioRoutes);
+
+// Rutas de las generaciones
+app.use('/generador', generacionRoutes);
 
 // Ruta por defecto
 app.get('/', (req, res) => {
