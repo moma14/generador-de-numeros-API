@@ -1,13 +1,13 @@
 import express from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
+import session from 'express-session';
 import multer from 'multer';
 import sharp from 'sharp';
 import usuarioRoutes from './routes/Usuarios.js';
 import generacionRoutes from './routes/Generador.js';
-import { verificarConexion } from './base de datos/Database.js'; // Importar la función verificarConexion
+import { verificarConexion } from './base de datos/Database.js';
 
-// Configuración del servidor
 const app = express();
 
 // Middleware para habilitar CORS
@@ -16,6 +16,16 @@ app.use(cors());
 // Middlewares para parsear el cuerpo de las solicitudes
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+
+// Configuración de sesión
+app.use(
+  session({
+    secret: 'mi_secreto_sesion', // Cambiar por un secreto seguro
+    resave: false,
+    saveUninitialized: true,
+    cookie: { secure: false }, // Cambiar a true si usas HTTPS
+  })
+);
 
 // Configuración de Multer para manejo de archivos
 const storage = multer.memoryStorage(); // Guarda los archivos en memoria para procesamiento
@@ -30,7 +40,7 @@ app.post('/upload', upload.single('grafico'), async (req, res) => {
 
     // Reducir el tamaño del gráfico utilizando Sharp
     const imagenProcesada = await sharp(req.file.buffer)
-      .resize(800, 600, { fit: 'inside' }) // Redimensiona a 800x600 manteniendo proporciones
+      .resize(800, 600, { fit: 'inside' })
       .toFormat('jpeg')
       .jpeg({ quality: 80 })
       .toBuffer();
@@ -50,11 +60,11 @@ app.use('/generador', generacionRoutes);
 
 // Ruta por defecto
 app.get('/', (req, res) => {
-    res.send('API del generador de números está activa');
-  });
-  
-  // Verificar conexión a la base de datos
-  verificarConexion();
+  res.send('API del generador de números está activa');
+});
+
+// Verificar conexión a la base de datos
+verificarConexion();
 
 // Iniciar servidor
 const PORT = process.env.PORT || 3002;

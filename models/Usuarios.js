@@ -10,7 +10,13 @@ export const usuarioModel = {
   // Obtener un usuario por ID
   async getUsuarioById(id) {
     const [rows] = await db.query('SELECT * FROM usuarios WHERE id_usuario = ?', [id]);
-    return rows[0]; // Retorna un único usuario
+    return rows[0] || null; // Retorna un único usuario o null si no existe
+  },
+
+  // Obtener un usuario por email
+  async getUsuarioByEmail(email) {
+    const [rows] = await db.query('SELECT * FROM usuarios WHERE email = ?', [email]);
+    return rows[0] || null; // Retorna el usuario encontrado o null si no existe
   },
 
   // Crear un nuevo usuario
@@ -22,7 +28,7 @@ export const usuarioModel = {
       telefono,
       email,
       usuario: username,
-      contrasenia
+      contrasenia,
     } = usuario;
 
     const [result] = await db.query(
@@ -44,7 +50,7 @@ export const usuarioModel = {
       telefono,
       email,
       usuario: username,
-      contrasenia
+      contrasenia,
     } = usuario;
 
     const [result] = await db.query(
@@ -61,5 +67,5 @@ export const usuarioModel = {
   async deleteUsuario(id) {
     const [result] = await db.query('DELETE FROM usuarios WHERE id_usuario = ?', [id]);
     return result.affectedRows > 0; // Retorna true si se eliminó
-  }
+  },
 };

@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken';
+import bcrypt from 'bcrypt';
 import { usuarioService } from '../services/Usuarios.js';
 
 export const usuarioController = {
@@ -60,36 +61,39 @@ export const usuarioController = {
   // Iniciar sesión
   async login(req, res) {
     try {
-      const { usuario, contrasenia } = req.body;
+      const { email, password } = req.body;
 
       // Validar credenciales
-      const usuarioData = await usuarioService.obtenerUsuarioPorNombreUsuario(usuario);
+      if (!email || !password) {
+        return res.status(400).render('login', { error: 'Email y contraseña son obligatorios' });
+      }
 
-      if (!usuarioData || usuarioData.contrasenia !== contrasenia) {
-        return res.status(401).json({ error: 'Credenciales inválidas' });
+      const usuario = await usuarioService.obtenerUsuarioPorEmail(email);
+
+      if (!usuario) {
+        return res.status(401).render('login', { error: 'Credenciales inválidas' });
+      }
+
+      // Comparar la contraseña
+      const contraseniaValida = await bcrypt.compare(password, usuario.contrasenia);
+      if (!contraseniaValida) {
+        return res.status(401).render('login', { error: 'Credenciales inválidas' });
       }
 
       // Generar token JWT
       const token = jwt.sign(
-        { id: usuarioData.id_usuario, usuario: usuarioData.usuario },
+        { id: usuario.id_usuario, email: usuario.email },
         process.env.JWT_SECRET || 'mi_secreto_jwt',
         { expiresIn: '1h' }
       );
 
-      // Crear sesión
-      req.session.userId = usuarioData.id_usuario;
+      // Guardar token en sesión
+      req.session.userId = usuario.id_usuario;
 
-      res.status(200).json({
-        message: 'Inicio de sesión exitoso',
-        token,
-        usuario: {
-          id: usuarioData.id_usuario,
-          nombres: usuarioData.nombres,
-          usuario: usuarioData.usuario,
-        },
-      });
+      res.redirect('/'); // Redirige al dashboard u otra vista
     } catch (error) {
-      res.status(500).json({ error: 'Error al iniciar sesión' });
+      console.error('Error al iniciar sesión:', error.message);
+      res.status(500).render('login', { error: 'Error interno del servidor' });
     }
   },
 

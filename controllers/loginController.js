@@ -1,4 +1,5 @@
-import jwt from 'jsonwebtoken';
+/*import jwt from 'jsonwebtoken';
+import bcrypt from 'bcrypt';
 import { usuarioService } from '../services/Usuarios.js';
 
 export const usuarioController = {
@@ -8,8 +9,9 @@ export const usuarioController = {
 
       const { email, password } = req.body;
 
+      // Validar entrada
       if (!email || !password) {
-        console.log('Faltan datos: email o password no proporcionados.');
+        console.warn('Faltan datos: email o password no proporcionados.');
         return res.status(400).json({ error: 'Email y contraseña son obligatorios' });
       }
 
@@ -18,13 +20,16 @@ export const usuarioController = {
       console.log('Usuario obtenido:', usuarioData);
 
       if (!usuarioData) {
-        console.log(`Usuario con email ${email} no encontrado.`);
+        console.warn(`Usuario con email ${email} no encontrado.`);
         return res.status(401).json({ error: 'Credenciales inválidas' });
       }
 
-      // Comparar contraseñas
-      if (password !== usuarioData.contrasenia) {
-        console.log(`Contraseña inválida para el usuario con email ${email}.`);
+      // Comparar contraseñas (usando bcrypt)
+      const contraseniaValida = await bcrypt.compare(password, usuarioData.contrasenia);
+      console.log('Contraseña válida:', contraseniaValida);
+
+      if (!contraseniaValida) {
+        console.warn(`Contraseña inválida para el usuario con email ${email}.`);
         return res.status(401).json({ error: 'Credenciales inválidas' });
       }
 
@@ -34,10 +39,11 @@ export const usuarioController = {
         process.env.JWT_SECRET || 'mi_secreto_jwt',
         { expiresIn: '1h' }
       );
+
       console.log('Token generado:', token);
 
       // Responder con éxito
-      res.status(200).json({
+      return res.status(200).json({
         message: 'Inicio de sesión exitoso',
         token,
         usuario: {
@@ -47,8 +53,8 @@ export const usuarioController = {
         },
       });
     } catch (error) {
-      console.error('Error interno en /login:', error.message);
-      res.status(500).json({ error: 'Error al iniciar sesión' });
+      console.error('Error interno en /login:', error);
+      return res.status(500).json({ error: 'Error al iniciar sesión', detalles: error.message });
     }
   },
-};
+};*/
