@@ -65,19 +65,19 @@ export const usuarioController = {
 
       // Validar credenciales
       if (!email || !password) {
-        return res.status(400).render('login', { error: 'Email y contraseña son obligatorios' });
+        return res.status(400).json({ error: 'Email y contraseña son obligatorios' });
       }
 
       const usuario = await usuarioService.obtenerUsuarioPorEmail(email);
 
       if (!usuario) {
-        return res.status(401).render('login', { error: 'Credenciales inválidas' });
+        return res.status(401).json({ error: 'Credenciales inválidas' });
       }
 
       // Comparar la contraseña
       const contraseniaValida = await bcrypt.compare(password, usuario.contrasenia);
       if (!contraseniaValida) {
-        return res.status(401).render('login', { error: 'Credenciales inválidas' });
+        return res.status(401).json({ error: 'Credenciales inválidas' });
       }
 
       // Generar token JWT
@@ -87,13 +87,11 @@ export const usuarioController = {
         { expiresIn: '1h' }
       );
 
-      // Guardar token en sesión
-      req.session.userId = usuario.id_usuario;
-
-      res.redirect('/'); // Redirige al dashboard u otra vista
+      // Devolver token e ID del usuario
+      res.status(200).json({ id_usuario: usuario.id_usuario, token });
     } catch (error) {
       console.error('Error al iniciar sesión:', error.message);
-      res.status(500).render('login', { error: 'Error interno del servidor' });
+      res.status(500).json({ error: 'Error interno del servidor' });
     }
   },
 
