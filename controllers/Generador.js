@@ -85,20 +85,42 @@ export const generacionController = {
     },
   ],
 
-  /**
-   * Obtener todas las generaciones asociadas a un usuario
-   */
-  async obtenerGeneracionesPorUsuario(req, res) {
-    try {
-      console.log('Solicitud recibida en obtenerGeneracionesPorUsuario:', req.params);
-      const { id_usuario } = req.params;
-      const generaciones = await generacionService.obtenerGeneracionesPorUsuario(Number(id_usuario));
-      res.status(200).json(generaciones);
-    } catch (error) {
-      console.error('Error al obtener generaciones por usuario:', error.message, error);
-      res.status(500).json({ error: 'No se pudieron obtener las generaciones' });
-    }
-  },
+ /**
+ * Obtener todas las generaciones asociadas a un usuario
+ */
+async obtenerGeneracionesPorUsuario(req, res) {
+  try {
+    console.log('Solicitud recibida en obtenerGeneracionesPorUsuario:', req.params);
+    const { id_usuario } = req.params;
+
+    // Obtener generaciones desde el servicio
+    let generaciones = await generacionService.obtenerGeneracionesPorUsuario(Number(id_usuario));
+
+    // Depuración: Imprimir datos originales de la base de datos
+    console.log('Datos originales de generaciones:', generaciones);
+
+    // Procesar cada generación para asegurarse de que los campos son válidos
+    generaciones = generaciones.map((gen) => ({
+      ...gen,
+      parametros: typeof gen.parametros === 'string' 
+        ? JSON.parse(gen.parametros || '{}') 
+        : gen.parametros,
+      resultados: typeof gen.resultados === 'string' 
+        ? JSON.parse(gen.resultados || '{}') 
+        : gen.resultados,
+      grafica: gen.grafica ? gen.grafica.toString('base64') : null, // Convertir grafica a Base64
+    }));
+
+    // Depuración: Imprimir datos procesados
+    console.log('Datos procesados de generaciones:', generaciones);
+
+    // Enviar las generaciones al cliente
+    res.status(200).json(generaciones);
+  } catch (error) {
+    console.error('Error al obtener generaciones por usuario:', error.message, error);
+    res.status(500).json({ error: 'No se pudieron obtener las generaciones' });
+  }
+},
 
   /**
    * Obtener todas las generaciones sin usuario
