@@ -1,12 +1,16 @@
 import express from 'express';
 import { generacionController } from '../controllers/Generador.js';
 import { db } from '../base de datos/Database.js';
+import { verifyToken } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
 // Rutas para generaciones
 router.post('/crear', generacionController.crearGeneracion);
-router.get('/usuario/:id_usuario', generacionController.obtenerGeneracionesPorUsuario);
+router.get('/usuario/:id_usuario', verifyToken, (req, res, next) => {
+  console.log('Ruta /usuario/:id_usuario llamada'); // <-- Log para confirmar que la ruta se está llamando
+  next();
+}, generacionController.obtenerGeneracionesPorUsuario);
 router.get('/sin-usuario', generacionController.obtenerGeneracionesSinUsuario);
 router.get('/descargar/:id_generacion', async (req, res) => {
     const { id_generacion } = req.params;

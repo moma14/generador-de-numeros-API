@@ -92,7 +92,6 @@ async obtenerGeneracionesPorUsuario(req, res) {
   try {
     console.log('Solicitud recibida en obtenerGeneracionesPorUsuario:', req.params);
     const { id_usuario } = req.params;
-
     // Obtener generaciones desde el servicio
     let generaciones = await generacionService.obtenerGeneracionesPorUsuario(Number(id_usuario));
 
@@ -104,10 +103,11 @@ async obtenerGeneracionesPorUsuario(req, res) {
       ...gen,
       archivo_descarga: gen.archivo_descarga ? gen.archivo_descarga.toString('utf-8') : null, // Convertir BLOB a texto
       parametros: typeof gen.parametros === 'string' ? JSON.parse(gen.parametros || '{}') : gen.parametros,
-      resultados: typeof gen.resultados === 'string' ? JSON.parse(gen.resultados || '{}') : gen.resultados,
+      resultados: gen.resultados instanceof Buffer
+        ? JSON.parse(gen.resultados.toString('utf-8')) // Convertir Buffer a JSON
+        : (typeof gen.resultados === 'string' ? JSON.parse(gen.resultados || '{}') : gen.resultados),
       grafica: gen.grafica ? gen.grafica.toString('base64') : null, // Convertir grafica a Base64
     }));
-    
     // Depuración: Imprimir datos procesados
     console.log('Datos procesados de generaciones:', generaciones);
 
