@@ -102,15 +102,12 @@ async obtenerGeneracionesPorUsuario(req, res) {
     // Procesar cada generación para asegurarse de que los campos son válidos
     generaciones = generaciones.map((gen) => ({
       ...gen,
-      parametros: typeof gen.parametros === 'string' 
-        ? JSON.parse(gen.parametros || '{}') 
-        : gen.parametros,
-      resultados: typeof gen.resultados === 'string' 
-        ? JSON.parse(gen.resultados || '{}') 
-        : gen.resultados,
+      archivo_descarga: gen.archivo_descarga ? gen.archivo_descarga.toString('utf-8') : null, // Convertir BLOB a texto
+      parametros: typeof gen.parametros === 'string' ? JSON.parse(gen.parametros || '{}') : gen.parametros,
+      resultados: typeof gen.resultados === 'string' ? JSON.parse(gen.resultados || '{}') : gen.resultados,
       grafica: gen.grafica ? gen.grafica.toString('base64') : null, // Convertir grafica a Base64
     }));
-
+    
     // Depuración: Imprimir datos procesados
     console.log('Datos procesados de generaciones:', generaciones);
 
